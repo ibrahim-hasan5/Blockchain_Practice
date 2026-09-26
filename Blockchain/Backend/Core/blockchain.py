@@ -2,18 +2,20 @@ from Blockchain.Backend.Core.blockheader import BlockHeader
 from Blockchain.Backend.Core.block import Block
 from Blockchain.Backend.Core.Database.database import BlockchainDB
 from Blockchain.Backend.Util.util import hash256
+from Blockchain.Backend.Core.tx import CoinbaseTx
 import time
 import json
 
-VERSION = 1
-ZERO_HASH = "0" * 64
-TARGET = "0000"
+from Blockchain.config import VERSION, TARGET, ZERO_HASH
 
 class Blockchain:
     def __init__(self):
         # self.chain = []
         self.blockchainDB = BlockchainDB()
-        self.create_genesis_block()
+
+        if not self.blockchainDB.BlockchainDBExists():
+            print("Blockchain database not found. Creating genesis block...")
+            self.create_genesis_block()
 
     def write_on_disk(self, block):
         self.blockchainDB.write(block)
@@ -27,6 +29,11 @@ class Blockchain:
     def create_genesis_block(self):
         self.add_block(1, ZERO_HASH)
 
+    def convert_to_json(self):
+        self.TxJson = []
+        for tx in self.addTransactionsInBlock:
+            self.TxJson.append(tx.to_dict())
+
     def add_block(self, blockHeight, prevBlockHash):
 
         # Create a new block header
@@ -35,19 +42,24 @@ class Blockchain:
         bits = "ffff0000" # Placeholder for the actual difficulty target
 
         # transactions = []  # Placeholder for actual transactions
-        Txs = [f"A is sending {blockHeight} coins to B"]  # Placeholder for actual transactions
+        # Txs = [f"A is sending {blockHeight} coins to B"]  # Placeholder for actual transactions
+        # Create a coinbase transaction for the miner
+        coinbase_tx = CoinbaseTx(blockHeight).CoinbaseTransaction()
+        Txs = [coinbase_tx]
 
-        merkle_root = hash256(json.dumps(Txs).encode('utf-8'))
+        # merkle_root = hash256(json.dumps(Txs).encode('utf-8'))
+        merkle_root = ''
 
         block_header = BlockHeader(version, prevBlockHash, merkle_root, timestamp, bits)
 
         block_header.mine(TARGET)
 
         # Create a new block
-        new_block = Block(blockHeight, 1, block_header.__dict__, Txs).__dict__
+        new_block = Block(blockHeight, 1, block_header.__dict__, Txs[0].to_dict()).__dict__
 
         # Add the new block to the blockchain
         # self.chain.append(new_block)
+        # self.convert_to_json()
         self.write_on_disk([new_block])
 
         print(f"Block {blockHeight} added to the blockchain with hash: {block_header.blockHash}")

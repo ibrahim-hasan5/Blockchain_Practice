@@ -1,8 +1,8 @@
 import sys
 
-sys.path.append("D:/UapCoin")
+sys.path.append("/Blockchain Full Stack")
 from Blockchain.Backend.Core.EllepticCurve.EllepticCurve import Sha256Point
-from Blockchain.Backend.Util.util import decode_base58, encode_base58, hash160, hash160_bytes, hash256, hash256_bytes
+from Blockchain.Backend.Util.util import decode_base58, hash160, hash160_bytes, hash256, hash256_bytes
 import secrets
 
 
@@ -46,28 +46,28 @@ class account:
 
         newAddr = newAddr + checksum
        
-        # BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+        BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
-        # # Count the number of leading zeros in the newAddr
-        # count = 0
-        # for c in newAddr:
-        #     if c == 0:
-        #         count += 1
-        #     else:
-        #         break
+        # Count the number of leading zeros in the newAddr
+        count = 0
+        for c in newAddr:
+            if c == 0:
+                count += 1
+            else:
+                break
 
-        # # Convert the newAddr to an integer and then to a base58 string
-        # num = int.from_bytes(newAddr, "big")
-        # prefix = "1" * count
+        # Convert the newAddr to an integer and then to a base58 string
+        num = int.from_bytes(newAddr, "big")
+        prefix = "1" * count
 
-        # result = ""
+        result = ""
 
-        # """ BASE58 Encoding """
-        # while num > 0:
-        #     num, mod = divmod(num, 58)
-        #     result = BASE58_ALPHABET[mod] + result
+        """ BASE58 Encoding """
+        while num > 0:
+            num, mod = divmod(num, 58)
+            result = BASE58_ALPHABET[mod] + result
 
-        self.PublicAddress = encode_base58(newAddr)
+        self.PublicAddress = prefix + result
 
         print(f"Private Key: {self.privateKey}")
         print(f"Public Key: {self.publicKey.hex()}")

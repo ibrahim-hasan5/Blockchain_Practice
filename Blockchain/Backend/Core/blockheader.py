@@ -14,5 +14,5 @@ class BlockHeader:
             self.blockHash = hash256(
                 (str(self.version) + self.prev_block_hash + self.merkle_root + str(self.timestamp) + str(self.bits) + str(self.nonce)).encode('utf-8'))
             self.nonce += 1
-            print(f"Mining Block: Nonce: {self.nonce}, Hash: {self.blockHash}", end="\r")
+            print(f"Mining Block: Nonce: {self.nonce}, Hash: {self.blockHash}", end="\r", flush=True)
     

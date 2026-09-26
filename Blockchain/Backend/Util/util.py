@@ -1,4 +1,5 @@
 import hashlib
+from math import log
 from Crypto.Hash import RIPEMD160
 
 BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
@@ -53,3 +54,53 @@ def decode_base58(s):
         raise ValueError(f"bad Address {checksum} {hash256_bytes(combined[:-4][:4])}")
 
     return combined[1:-4]
+
+
+def bytes_needed(n):
+    if n == 0:
+        return 1
+    return int(log(n, 256)) + 1
+
+def int_to_little_endian(n, length):
+    '''Convert an integer to little-endian bytes of a given length.'''
+    return n.to_bytes(length, "little")
+
+def little_endian_to_int(b):
+    '''Convert little-endian bytes to an integer.'''
+    return int.from_bytes(b, "little")
+
+def int_to_big_endian(n, length):
+    '''Convert an integer to big-endian bytes of a given length.'''
+    return n.to_bytes(length, "big")
+
+def big_endian_to_int(b):
+    '''Convert big-endian bytes to an integer.'''
+    return int.from_bytes(b, "big")
+
+def encode_varint(i):
+    '''Encodes an integer as a varint.'''
+    if i < 0xfd:
+        return bytes([i])
+    elif i < 0x10000:
+        return b'\xfd' + int_to_little_endian(i, 2)
+    elif i < 0x100000000:
+        return b'\xfe' + int_to_little_endian(i, 4)
+    elif i < 0x10000000000000000:
+        return b'\xff' + int_to_little_endian(i, 8)
+    else:
+        raise ValueError(f"Integer too large: {i}")
+
+def read_varint(s):
+    '''Reads a varint from a stream and returns the integer.'''
+    i = s.read(1)[0]
+    if i == 0xfd:
+        # 0xfd indicates that the next 2 bytes are the integer
+        return little_endian_to_int(s.read(2))
+    elif i == 0xfe:
+        # 0xfe indicates that the next 4 bytes are the integer
+        return little_endian_to_int(s.read(4))
+    elif i == 0xff:
+        # 0xff indicates that the next 8 bytes are the integer
+        return little_endian_to_int(s.read(8))
+    else:
+        return i

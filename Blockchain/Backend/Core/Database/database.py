@@ -7,8 +7,11 @@ class BaseDB:
         self.basepath = "Data"
         self.filepath = "/".join((self.basepath, self.filename))
 
+    def BlockchainDBExists(self):
+        return os.path.exists(self.filepath)
+
     def read(self):
-        if not os.path.exists(self.filepath):
+        if not self.BlockchainDBExists():
             print(f"File {self.filepath} not available")
             return False
 
