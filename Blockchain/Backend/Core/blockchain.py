@@ -73,3 +73,46 @@ class Blockchain:
 
     def print(self):
         print(json.dumps(self.read_from_disk(), indent=4))
+
+    def validate_chain(self):
+        chain = self.read_from_disk()
+
+        # 1. Return False if the blockchain is empty.
+        if not chain or len(chain) == 0:
+            return False
+
+        previous_hash = ZERO_HASH
+
+        for i, block in enumerate(chain):
+            height = block["Height"]
+            block_header = block["BlockHeader"]
+            stored_hash = block_header["blockHash"]
+
+            # 2. Check that the first block has height 1 and uses ZERO_HASH as its previous hash.
+            if i == 0:
+                if height != 1 or block_header["prev_block_hash"] != ZERO_HASH:
+                    return False
+            else:
+                # 3. Check that each block has the correct height and previous-block hash.
+                if height != i + 1:
+                    return False
+                if block_header["prev_block_hash"] != previous_hash:
+                    return False
+
+            # 4. Recalculate each block's hash and compare it with the stored hash.
+            # Important: The existing mining code increments the nonce after calculating the hash.
+            # Consider this behavior when recalculating a block's hash.
+            recalculated_hash = hash256(
+                (str(block_header["version"]) + block_header["prev_block_hash"] + block_header["merkle_root"] + str(block_header["timestamp"]) + str(block_header["bits"]) + str(block_header["nonce"] - 1)).encode('utf-8')
+            )
+
+            if recalculated_hash != stored_hash:
+                return False
+
+            # 5. Check that each block's hash satisfies the mining target (TARGET).
+            if stored_hash[0:len(TARGET)] != TARGET:
+                return False
+
+            previous_hash = stored_hash
+
+        return True
